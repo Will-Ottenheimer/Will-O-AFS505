@@ -1,0 +1,146 @@
+---
+title: "AFS505 Hwk1"
+author: "William Ottenheimer"
+date: "2022-08-31"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Question 1
+(a) Crop Vector
+Create the vector below.
+
+```{r}
+### Create the vector and populate necessary data
+vect_cropa <- c("apples","wheat","soybeans","potatoes","grapes","cherries","almonds","hay","hops")
+### Display the vector
+vect_cropa
+```
+(b) Address crop vector
+
+Replace soybeans with oranges
+
+Use indexing to create a subset of the crop vector with only major crops grown in Washington
+
+Use a logical vector to create a subset of the crop vector with only major crops grown in Washington
+
+```{r}
+### Replace soybeans with oranges
+vect_cropb <- vect_cropa
+vect_cropb[3] <- "oranges"
+### Display vector to verify change
+vect_cropb
+### subset only major crops
+vect_cropb1 <- vect_cropb[c(1,2,4,5,6,8,9)]
+### Display subset vector
+vect_cropb1
+### create subset using logical vector
+vect_cropb2 <- vect_cropb[c(T,T,F,T,T,T,F,T,T)]
+### Display subset vector
+vect_cropb2
+
+
+```
+(c) Reorder WA crop vector
+
+Save the Washington major crop vector (subset of original vector)
+Reorder the Washington major crop vector as shown 
+Use order() to sort in alphabetical
+
+```{r}
+### Save the vector as a subset (redundant)
+vect_cropc1 <- vect_cropb1
+### Reorder as shown
+### create index of order and pass to order function
+index <- c(1,6,4,2,3,7,5)
+vect_cropc1 <- vect_cropc1[order(index)]
+### Display ordered vector
+#vect_cropc1
+### conduct alphabetical ordering
+vect_cropc2 <- vect_cropb1
+
+cat("\nsort increasing\n")
+order(vect_cropc2)
+vect_cropc2 <- vect_cropc2[order(vect_cropc2)]
+### Display vector alphabetically ordered
+vect_cropc2
+```
+
+Question 2
+
+(a) address matrix with positive indices
+create the matrix below
+extract a specific subset
+extract another subset
+
+```{r}
+### create the matrix
+Q2A_vect <- c(1:20)
+Q2A_mat <- matrix(data = Q2A_vect, nrow = 5, ncol = 4)
+Q2A_mat <- t(Q2A_mat)
+### Display the matrix
+Q2A_mat
+### extract the first subset
+
+Q2A_subs1 <- Q2A_mat[2:4,3:4]
+### Display the first subset
+Q2A_subs1
+### extract the second subset
+extractcolumn <-c(1,3,5)
+Q2A_subs2 <- Q2A_mat[2,extractcolumn]
+### Display the second subset
+Q2A_subs2
+```
+(b) Subset Matrix with negative indices
+Extract the following subset
+Extract another subset
+
+```{r}
+###extract the first subset from the original matrix
+Q2B_subs1 <- Q2A_mat[-3,]
+### Display the first subset
+Q2B_subs1
+### Extract the second subset from the original matrix
+removecolumns <- c(3,5)
+Q2B_subs2 <- Q2A_mat[-2,-removecolumns]
+### Display the second subset
+Q2B_subs2
+```
+(c) Replace values in matrix
+create a duplicate matrix for each step of these exercises so the original matrix remains unaltered
+
+Step 1 Replace 9,14 and 19 with 88
+Step 2 Replace 9,14 and 19 with 23,24,25
+Step 3 Remove the value of 8
+
+```{r}
+### Create duplicate unaltered matrix
+Q2C_unaltMat <- Q2A_mat
+### Perform Step 1
+Q2C_step1Mat <- Q2C_unaltMat
+Q2C_step1Mat[2:4,4] <- 88
+### Display altered matrix
+Q2C_step1Mat
+### Perform Step 2
+Q2C_step2Mat <- Q2C_unaltMat
+Q2C_step2Mat[2,4] <- 23
+Q2C_step2Mat[3,4] <- 24
+Q2C_step2Mat[4,4] <- 25
+### Display altered matrix
+Q2C_step2Mat
+### Perform Step 3
+Q2C_step3Mat <- Q2C_unaltMat
+Q2C_step3Mat[2,3] <- NA
+### Display altered matrix
+Q2C_step3Mat
+
+```
+
