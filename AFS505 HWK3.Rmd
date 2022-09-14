@@ -1,0 +1,176 @@
+---
+title: "AFS505hwk3"
+author: "William Ottenheimer"
+date: "2022-09-12"
+output:
+  pdf_document: default
+  html_document: default
+---
+Question 1: Simple Lists
+(a) List 1
+Create list 1 shown below
+
+```{r}
+### Create the elements of the list (in this case data objects)
+object1 <- c("Soils 502")
+object2 <- c(1,3,4,5)
+object3vect <- c(1:6)
+obj3matr <- matrix(data = object3vect, nrow = 2, ncol = 3)
+object3 <- t(obj3matr)
+### Create the list from the elements
+Q1a_list <- list(object1,object2,object3)
+### Display and analyze list
+Q1a_list
+str(Q1a_list)
+### Extract the final element of the list as instructed
+Q1a_extract1 <- Q1a_list[3]
+### Display first extraction
+Q1a_extract1
+str(Q1a_extract1)
+### Extract two elements from the list as instructed
+Q1a_extract2 <- Q1a_list[c(T,F,T)]
+### Display second extraction
+Q1a_extract2
+str(Q1a_extract2)
+```
+
+(b) list 2
+Create the following list
+```{r}
+### Create the elements of the list (data objects some of which are lists)
+object4a <- c("Williams")
+object4b <- c("Serena")
+object4 <- list(Last = object4a, First = object4b)
+object5 <- 36
+object6 <- c(wins = 801,losses = 136)
+Austopen <- c(2003,2005,2007,2009,2010,2015,2017)
+Frenchopen <- c(2002,2013,2015)
+Wimbled <- c(2002,2003,2009,2010,2012,2015,2016)
+Usopen <- c(1999,2002,2008,2012,2013,2014)
+object7 <- list(Australian.Open = Austopen,French.Open = Frenchopen,Wimbledon = Wimbled, US.Open = Usopen)
+### Create the list with specific naming conventions
+Q1b_list <- list(name = object4,age = object5, record = object6, grand.slam.wins = object7)
+### Display the list and structure
+Q1b_list
+str(Q1b_list)
+```
+Grand Slam wins aren't structured as a data frame or matrix because they are structured as a list. There are different lengths of atomic vectors so it wouldn't convert easily to data frame or matrix form.
+
+Question 2 cbind,rbind
+
+Create the following vectors and matricies.
+
+```{r}
+### Create the following vectors and matrices
+Q2vect1 <- c(3,5,6,12)
+Q2vect2 <- c(TRUE,FALSE,TRUE,TRUE)
+Q2vect3 <- c("A","B","C","D","E")
+Q2mat1 <- matrix(seq(2,32,by=3), nrow = 4, ncol = 5)
+Q2vect4 <- c(1,0,-1,0,1,-1,0,1)
+Q2mat2 <- matrix(data = Q2vect4, nrow = 2,ncol = 4)
+### Display all the created data objects
+Q2vect1
+Q2vect2
+Q2vect3
+Q2mat1
+Q2mat2
+```
+(a) cbind
+create the following outputs using data objects created and a single cbind command
+```{r}
+### Create the appropriate data object
+v2 <- cbind(Q2vect1,Q2vect2)
+### Display the data object
+colnames(v2) <- NULL
+v2
+### Create the next appropriate data object
+cbind2 <- cbind(Q2vect3,Q2vect2)
+### Display the data object
+colnames(cbind2) <- NULL
+cbind2
+### Create the next appropriate data object
+cbind3 <- cbind(Q2mat1,Q2vect1)
+### Display the data object
+colnames(cbind3) <- NULL
+cbind3
+```
+(b) rbind
+Create the three outputs using data objects created
+```{r}
+### Create the appropriate object
+rbind1 <- rbind(Q2mat1[,1:4],Q2mat2)
+### Display creation
+rbind1
+### Create the next object
+rbind2 <- rbind(Q2vect1,Q2mat2)
+### Display creation
+rownames(rbind2) <- NULL
+rbind2
+### Create the next object
+rbind3 <- rbind(Q2vect1,Q2vect2,Q2vect3)
+### Display creation
+rownames(rbind3) <- c("v1","v2","v3")
+rbind3
+```
+Question 3
+
+(a) Read in Iris data
+Read in the csv Iris data
+Assign column names
+make sure columns have the correct data type
+use summary(), head(), or view() to avoid dumping a large data set into the console
+
+```{r}
+Q3df <- read.csv("C:\\Users\\otten\\Downloads\\iris.data")
+names <- read.csv("C:\\Users\\otten\\Downloads\\iris.names")
+colnames(Q3df) <- c("Sepal Length","Sepal Width", "Petal Length","Petal Width","Class")
+Q3df$Class <- as.factor(Q3df$Class)
+str(Q3df)
+summary(Q3df)
+```
+(b) Present Summaries of the following subsets
+```{r}
+### create subset
+Q3subset1 <- Q3df
+Q3subset1 <- subset(Q3subset1,Q3subset1$Class =="Iris-versicolor")
+### Display subset summary
+summary(Q3subset1)
+### create next subset
+Q3subset2 <- Q3df
+Q3subset2 <- subset(Q3subset2,Q3subset2$`Petal Width` > 1.5 | Q3subset2$`Sepal Width` >3.0)
+### Display subset summary
+summary(Q3subset2)
+
+```
+There is a relationship between the width measurements and iris class. Iris versicolor tend to have smaller widths than the other two classes... although there are exceptions to the rule
+
+Question 4
+(a) Read in car data
+```{r}
+### Read car data
+Q4df <- read.csv("C:\\Users\\otten\\Downloads\\car.csv", stringsAsFactors = TRUE)
+### Display data frame
+summary(Q4df)
+head(Q4df)
+dim(Q4df)
+
+```
+(b) remove all observations (rows) with missing values. show dim and summary of data with appropriate observations removed
+```{r}
+### Remove na values from data frame
+Q4bdf <- Q4df
+Q4bdf <- na.omit(Q4bdf)
+### Display subsetted data frame
+summary(Q4bdf)
+dim(Q4bdf)
+```
+(c) remove duplicate observations (rows)
+```{r}
+### Remove duplicate observations
+Q4cdf <- Q4bdf
+Q4cdf <- Q4cdf[!duplicated(Q4cdf),]
+### Display subsetted data frame
+summary(Q4cdf)
+dim(Q4cdf)
+```
+
