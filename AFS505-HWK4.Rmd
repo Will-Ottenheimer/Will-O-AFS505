@@ -1,0 +1,181 @@
+---
+title: "AFS505 HWK4"
+author: "William Ottenheimer"
+date: "2022-09-20"
+output: html_document
+---
+##Homework 4
+#### Question 1
+(a) Create trim.CV function
+create a function trim.CV that first removes potential outliers as identified by the criteria above, then computes the coefficient of variation for a vector of numeric data. I may find IQR() and quantile() functions useful
+
+```{r}
+### Create a function as described
+trim.CV <- function(x){
+  ### calculate iqr and quantiles for cutoff values
+ iqrange <- IQR(x)
+  quant <- quantile(x)
+  ### subset vector
+  x2<- x > quant[4]+(1.5*iqrange)
+   trimupper <- x[!c(x2)]
+   x3<- trimupper > (quant[2]) /(1.5*iqrange)
+   
+  trimmedvect <- trimupper[c(x3)]
+  ### calculate and print coefficient of variation
+  coefvar <- sd(trimmedvect)/mean(trimmedvect)
+  print(coefvar)
+    
+  return(trimmedvect)
+}
+### test function ### a vector with 1 and 99 removed should be displayed
+testvect <- c(1,99,50,51,52,48)
+displaytest <- trim.CV(testvect)
+print(displaytest)
+```
+(b) Compute trim.CV value for sepal width
+Recall that part a asked for the argument of trim.CV to be a numeric vector
+
+```{r}
+### Import the Iris data and assign to data frame properly
+Q1df <- read.csv("C:\\Users\\otten\\Downloads\\iris.data")
+names <- read.csv("C:\\Users\\otten\\Downloads\\iris.names")
+colnames(Q1df) <- c("Sepal Length","Sepal Width", "Petal Length","Petal Width","Class")
+Q1df$Class <- as.factor(Q1df$Class)
+### pass sepal width column to trim function
+### trim function receives a numeric vector
+trimmedsepal <- trim.CV(Q1df$`Sepal Width`)
+### display the trimmed vector 
+summary(trimmedsepal)
+head(trimmedsepal)
+```
+#### Question 2
+use tapply() and aggregate()
+(a) use tapply() to compute group standard deviations for petal width, grouping by variety comment on results
+
+```{r}
+### import iris data and assign to a dataframe with factors
+Q2df <- read.csv("C:\\Users\\otten\\Downloads\\iris.data")
+names <- read.csv("C:\\Users\\otten\\Downloads\\iris.names")
+colnames(Q2df) <- c("Sepal Length","Sepal Width", "Petal Length","Petal Width","Class")
+Q2df$Class <- as.factor(Q2df$Class)
+### compute group sd for width by variety
+tapply(Q2df$`Petal Width`, INDEX = Q2df$Class , FUN = sd)
+
+
+```
+Brief Comment:
+The standard deviations for petal width are .108 for setosa, .197 for versicolor and .274 for virginica. This means setosas are the most consistent and virginicas have the most petal width variation.
+
+(b) use aggregate() with standard specification to compute group medians for all numerical variables in the dataset, grouping by variety and then comment.
+
+```{r}
+### use aggregate function to find median of all columns
+aggregate(Q2df[,-5],by =list(Q2df$Class) ,FUN = median)
+```
+Brief comment:
+The median values for setosa sepal length, sepal width, petal length, and petal width respectively are 5,3.4,1.5 , and .2
+The median values for versicolor sepal length, sepal width, petal length, and petal width respectively are 5.9, 2.8, 4.35, and 1.3
+The median values for virginica sepal length, sepal width, petal length, and petal width respectively are 6.5, 3, 5.55, and 2
+These median values are relatively close to each other.
+
+#### Question 3
+(a) Use the apply function to compute column wise sums of the numerical data in the iris dataset
+```{r}
+### access the iris dataset
+Q3df <- Q2df
+apply(Q3df[,-5], MARGIN = 2,FUN = sum)
+```
+(b) Use a for loop to compute the following ratio for each row
+what fraction of observations have ratios > 2.5
+```{r}
+### create a loop to make the iris ratio variable
+dflength <- nrow(Q3df)
+lengthvect <- (1:dflength)
+Q3df$iris.ratio <- NA
+for (i in lengthvect) {
+
+  Q3df$iris.ratio[i] <- (Q3df$`Sepal Length`[i]+Q3df$`Petal Length`[i])/(Q3df$`Sepal Width`[i]+Q3df$`Petal Width`[i])
+}
+### compute the fraction of observations with ratios > 2.5
+Q3df$gr2.5 <- ifelse(Q3df$iris.ratio>2.5,1,0)
+fraction1 <- sum(Q3df$gr2.5)/dflength
+library(MASS)
+fract <- fractions(fraction1)
+print(fraction1)
+print(fract)
+
+```
+(c) repeat 3b using apply instead of a for loop
+
+```{r}
+### complete 3b using a apply instead of a for loop
+Q3dfc <- Q3df[,-5]
+Q3dfc <- Q3dfc[,-5]
+Q3dfc<- Q3dfc[,-5]
+dflength2 <- nrow(Q3dfc)
+### create ratio function
+ratfunction <- function(x){
+  sepallength <- x[1]
+  sepalwidth <- x[2]
+  petallength <- x[3]
+  petalwidth <- x[4]
+
+    irisratio <- (sepallength+petallength)/(sepalwidth+petalwidth)  
+
+  return(irisratio)
+}
+Q3dfc$iris.ratio <- apply(Q3dfc, MARGIN = 1,FUN = ratfunction)
+
+### calculate the faction of observations with ratios >2.5
+
+Q3dfc$gr2.5 <- ifelse(Q3df$iris.ratio>2.5,1,0)
+fraction2 <- sum(Q3dfc$gr2.5)/dflength2
+library(MASS)
+fract2 <- fractions(fraction2)
+print(fraction2)
+print(fract2)
+
+
+```
+The apply function is allegedly meant to save time but it was much easier and faster for me to use the for loop.
+
+#### Question 4
+(a) Read ecoli data
+
+```{r}
+### read the ecoli data
+setwd("C:\\Users\\otten\\Downloads")
+Q4df <- read.table("C:\\Users\\otten\\Downloads\\ecoli.data")
+### convert appropriate column to factor
+Q4df$V9 <- as.factor(Q4df$V9)
+summary(Q4df$V9)
+```
+(b) Extract data types for each column in my ecoli data frame using both the lapply() and sapply() functions and the data.class() function
+```{r}
+### extract data types using data class function and sapply/lapply
+lapply(Q4df,FUN = data.class)
+sapply(Q4df, FUN = data.class)
+
+```
+Brief Discussion:
+Relative to lapply sapply is much more user-friendly and makes the output smoother. It returned a vector as a default and that made the presentation of the output easier to digest.
+
+(c) Compute the sum for each numeric column in your ecoli data using sapply function. 
+```{r}
+### remove non numeric columns from dataframe
+Q4dfc <- Q4df[,-9]
+Q4dfc <- Q4dfc[,-1]
+### compute sum for each numeric column
+sapply(Q4dfc,FUN = sum)
+```
+Brief Discussion:
+The sums have been computed. The apply function necessitates an input for the Margin argument where the sapply function does not. Sapply also takes lists as input which makes it different from apply.
+
+#### Bonus Question
+
+Use mapply() and seq() to generate the following sequences of values with a single command
+
+```{r}
+### Use mapply to generate sequence
+mapply(seq, c(1,1,1), c(19,16,4.5), c(2,3,.5))
+```
