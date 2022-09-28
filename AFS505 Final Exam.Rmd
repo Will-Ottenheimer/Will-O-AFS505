@@ -181,11 +181,12 @@ It is apparent that 46.21875N119.34375W has the highest average yield for grain 
 ### Github link {.tabset}
 Repository link: https://github.com/Will-Ottenheimer/Will-O-AFS505.git
 
-Rmarkdown Permalink: https://github.com/Will-Ottenheimer/Will-O-AFS505/blob/a240a28cfffae1349c2ad571714fa9d61144dac9/AFS505%20Final%20Exam.Rmd
+Rmarkdown Permalink: https://github.com/Will-Ottenheimer/Will-O-AFS505/blob/fc22718dea4e2c9af785127eb1082c6e144260d9/AFS505%20Final%20Exam.Rmd 
 
-Rmarkdown PDF Permalink: https://github.com/Will-Ottenheimer/Will-O-AFS505/blob/a240a28cfffae1349c2ad571714fa9d61144dac9/AFS505-Final-Exam.pdf 
+Rmarkdown PDF Permalink: https://github.com/Will-Ottenheimer/Will-O-AFS505/blob/fc22718dea4e2c9af785127eb1082c6e144260d9/AFS505-Final-Exam.pdf 
 
 CSV File Permalink: https://github.com/Will-Ottenheimer/Will-O-AFS505/blob/4f6e32785add3316e0c4f013e6d832c7e1244ae9/ManagedCropData.csv
+
 
 
 ## Question 3 
