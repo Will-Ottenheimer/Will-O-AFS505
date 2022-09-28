@@ -1,0 +1,199 @@
+---
+title: "AFS505 Module 1 Final Exam"
+author: "William Ottenheimer"
+date: "2022-09-26"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+## Question 1 {.tabset}
+
+What are the basic R data structures? What are the differences between them? In what context would you use one versus the other
+
+The different basic data types in R are
+Characters, Numeric (both real and decimal), Integers, Logical (TRUE/FALSE), and complex.
+
+
+Common basic data structures are vectors, Matrices, Lists, Data Frames, and factors. 
+
+A vector is a sequence of data elements that must all be the same type. Vectors are technically one dimensional arrays. I would use a vector to store a simple collection of related data. Lists are a kind of vector technically, but most of the time I work with atomic vectors where the data type is restricted. One of the ways I often use vectors is to populate the data for matrices since the mat() function takes a data vector, character string, or list as its arguments. If you attempt to mix different data types in a vector r will coerce the data into the same type.
+
+A matrix is a collection of data elements arranged into a two dimensional rectangular layout with both rows and columns. In this way they are a natural extension of atomic vectors with the additional quality of having dimensionality. 
+Vectors and Matrices require that the data you include be the same data type. A vector is what you should use if your data is one dimensional. You would use a matrix if your data was multidimensional since a matrix has both columns and rows to organize data into. 
+
+A data frame is a list of vectors of equal length. it can handle data of different types if you have a mixture of string, logical, and numerical variables. If you have data with different types you should use a list or a data frame instead of a vector/matrix. A data frame is basically a data table. I use data frames to organize and interpret data sets with different variables. The function to fit linear models takes data frames as potential arguments so data frames are good for regression analysis. I often default to data frames for cleaning my data by assigning subsets of old data frames to new data frames however this practice can be cluttered and waste valuable memory. Data frames have attributes like rownames() which is helpful for enhancing the readability of your code. The read family of functions (read.csv or read.table for example) output data frames which is perhaps one of the most important uses of the data frame structure.
+
+A list is the most generic data type. It is basically a vector of objects which can be any type of r object even data structures. A list can even have other lists as it's elements. Lists are incredibly useful for working with certain functions in the apply family like sapply and lappy which can take lists or vectors as arguments. The base apply function takes a matrix as an input. Beyond "apply" the way functions in R work is very compatible with lists since functions return single objects a series of function results can be banded together in a list for a function to return.
+
+
+## Question 2 {.tabset}
+
+You are provided a folder with three location (county) names, each of which has subfolders for one or two crops, which in turn has a data file.
+
+I think it's easiest to combine steps a and b for question 2
+### Part a and b {.tabset}
+a iterate through the folders to deal all the files and merge them into a single data frame. You can use a "loop" to iterate or for efficiency check out the list.files() function
+
+b add four additional columns to the merged dataframe corresponding to the county name, crop name, latitude and longitude of the data. You must get this information from the directroy structure you are looping through or the strings returned by the call to list.files()
+
+
+```{r}
+
+### use list files function to get string vectors of the filenames
+### we will use fn as shorthand for filenames
+
+fnlocations <- list.files(path = "C:/Users/otten/Desktop/AFS Repository/Will-O-AFS505/CropModelResults")
+print(fnlocations)
+
+fncrops <- list.files(paste0("C:\\Users\\otten\\Desktop\\AFS Repository\\Will-O-AFS505\\CropModelResults\\",fnlocations[1]))
+print(fncrops)
+
+fncords <- list.files(paste0("C:\\Users\\otten\\Desktop\\AFS Repository\\Will-O-AFS505\\CropModelResults\\",fnlocations[1],"\\",fncrops[1]))
+print(fncords)
+
+
+### Create an initial data frame to rbind the rest of the data frames to when we read them
+### In this step we must also create the new columns appropriately using information from the list.file command output
+
+Q2maindf <- read.csv(paste0("C:\\Users\\otten\\Desktop\\AFS Repository\\Will-O-AFS505\\CropModelResults\\",fnlocations[1],"\\",fncrops[1],"\\",fncords[1],"\\seasonal_result.csv"))
+
+lllist <- strsplit(fncords[1],"N")
+latlong <- lllist[[1]]
+latlong[1] <- paste0(latlong[1],"N")
+latlong
+Q2maindf$countyname <- fnlocations[1]
+Q2maindf$cropname <- fncrops[1]
+Q2maindf$latitude <- latlong[1]
+Q2maindf$longitude <- latlong[2]
+### All of this is to make the code general so as to not hard code the known length of the file lists
+loclength <- length(fnlocations)
+croplength <- length(fncrops)
+cordlength <- length(fncords)
+### Create a for loop to cycle through each location
+### within that loop create a for loop to cycle through each crop
+### within that loop create a for loop to cycle through each lat/long
+
+### The loop should read a csv file and store it as a data frame. The loop should then create new columns for that data frame based on where the data was sourced. We can source some of the information from our global variables
+
+for (a in 1:loclength) {
+  for(b in 1:croplength){
+    for (c in 1:cordlength) {
+       fncords <- list.files(paste0("C:\\Users\\otten\\Desktop\\AFS Repository\\Will-O-AFS505\\CropModelResults\\",fnlocations[a],"\\",fncrops[b]))
+       tempdf <- read.csv(paste0("C:\\Users\\otten\\Desktop\\AFS Repository\\Will-O-AFS505\\CropModelResults\\",fnlocations[a],"\\",fncrops[b],"\\",fncords[c],"\\seasonal_result.csv"))
+       ### I like to print a piece of my loop just so I can see it is working while I run the code... This helps me problem solve in case an error were to occur
+       print(fncords[c])
+       lllist <- strsplit(fncords[c],"N")
+       latlong <- lllist[[1]]
+       latlong[1] <- paste0(latlong[1],"N")
+      tempdf$countyname <- fnlocations[a]
+      tempdf$cropname <- fncrops[b]
+      tempdf$latitude <- latlong[1]
+      tempdf$longitude <- latlong[2]
+      Q2maindf <- rbind(Q2maindf,tempdf)
+    }
+  }
+ 
+}
+### remove the duplicate values since one file was read twice
+Q2maindf <- Q2maindf[!duplicated(Q2maindf),]
+```
+### Part c {.tabset}
+
+c Rename the column irrig to irrigation_demand and precip to precipitation and export the dataframe as a csv file
+
+```{r}
+### Rename the columns 
+colnames(Q2maindf)[6] = "irrigation_demand"
+colnames(Q2maindf)[7] = "precipitation"
+
+### Export the data frame
+write.csv(Q2maindf, "C:\\Users\\otten\\Desktop\\AFS Repository\\Will-O-AFS505\\ManagedCropData.csv")
+```
+
+### Part d {.tabset}
+
+d summarize the annual irrigation demand by crop name and county name
+
+```{r}
+### To summarize by other variables I can convert the character data into factor data
+Q2maindf$countyname <- as.factor(Q2maindf$countyname)
+Q2maindf$cropname <- as.factor(Q2maindf$cropname)
+
+### summarize irrigation demand by county name
+tapply(Q2maindf$irrigation_demand,INDEX = Q2maindf$countyname, summary)
+### summarize irrigation demand by crop name
+tapply(Q2maindf$irrigation_demand,INDEX = Q2maindf$cropname, summary)
+```
+### Part e {.tabset}
+
+e What is the average yield of Winter Wheat in Walla Walla at 46.03125N118.40625W for the year ranges (1981-1990), (1991-2000), and
+(2001-2019)?
+
+The instructions don't specify how I need to calculate this information so I am using excel to filter the data quickly and report the average. This is easy because earlier in the exam I exported the data frame as a csv file
+
+![Excel computation of first average]("C:/Users/otten/Desktop/AFS Repository/Will-O-AFS505/AFS505 exam images/1981-1990 avg.PNG")
+
+For the crop at that location during the years 1981-1990 the average yield is 7660.89502
+
+![Excel computation of second average]("C:/Users/otten/Desktop/AFS Repository/Will-O-AFS505/AFS505 exam images/1991 - 2000 avg.PNG")
+
+For the Crop at that location during the years 1991-2000 the average yield is 8086.688721
+
+![Excel computation of third average]("C:/Users/otten/Desktop/AFS Repository/Will-O-AFS505/AFS505 exam images/2001 - 2019 avg.PNG")
+
+For the Crop at that location during the years 2001-2019 the average yield is 7720.68303
+
+### Part f {.tabset}
+
+f which location has the highest yield (average) for the time period (2001-2019) for grain corn
+
+Again because the instructions don't specify I must do this in r I will make the calculations in excel 
+
+
+```{r}
+### I will create a subset of my data to figure this out first I am only interested in values related to corn grain
+library(stringr)
+
+Q2fsub <- subset(Q2maindf ,Q2maindf$cropname == "Corn_grain")
+
+### Secondly I am only interested in the years 2001-2019. It will be easier for me to subset this data if I make the time variable numeric
+
+Q2fsub$YYYY.MM.DD.DOY. <- str_trunc(Q2fsub$YYYY.MM.DD.DOY., 4,"right", ellipsis = "")
+Q2fsub$YYYY.MM.DD.DOY. <- as.numeric(Q2fsub$YYYY.MM.DD.DOY.)
+Q2fsub <- subset(Q2fsub, Q2fsub$YYYY.MM.DD.DOY. >= 2001)
+
+### I will coerce the location (lat long) into factors so that I can calculate the means for each area
+
+Q2fsub$latitude <- as.factor(Q2fsub$latitude)
+Q2fsub$longitude <- as.factor(Q2fsub$longitude)
+
+### I use the tapply function to compute means
+tapply(Q2fsub$yield, INDEX = Q2fsub$latitude, mean)
+
+tapply(Q2fsub$yield, INDEX = Q2fsub$longitude, mean)
+
+```
+It is apparent that 46.21875N119.34375W has the highest average yield for grain corn in the period 2001-20019 with an average of 15263.030
+
+### Github link {.tabset}
+
+
+
+
+## Question 3 
+
+Was the data provided to you well described? If not, what information was missing? Comment on what kind of meta data (description about the data) should be included as a best practice while sharing data sets.
+
+The data was poorly described. To begin the unit of measurement is missing for nearly all the variables. I don't know if yield is in bushels or grams, or truckloads so the meta data file should explain the measurement unit for all the numeric data. The Used_biomass is not labeled as a dummy variable (if it is it should be). The meta data should express what format the planting and harvesting date are in.
+
+The best meta data includes the date the data was created and the date it was last modified. Metadata should also include the name of the author of the data set and their contact info. Additionally, quality metadata should have tags and categories and titles and descriptions for all the data. Databases in particular should include information about the data types, columns, constraints, and relationships between the tabular data.
+
+
+## Question 4 
+
+Create an R Markdown file with different tabs for each of the six parts of question 2. In a seventh tab add the github link which has your Rscript/R markdownfile and the csv file generated from 2(c)
+
+Because I did steps a and b of question 2 in one step there will only be 6 tabs.
+
+
