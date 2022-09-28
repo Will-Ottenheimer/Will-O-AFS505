@@ -177,8 +177,11 @@ tapply(Q2fsub$yield, INDEX = Q2fsub$longitude, mean)
 It is apparent that 46.21875N119.34375W has the highest average yield for grain corn in the period 2001-20019 with an average of 15263.030
 
 ### Github link {.tabset}
+Repository link: https://github.com/Will-Ottenheimer/Will-O-AFS505.git
 
+Rmarkdown Permalink: https://github.com/Will-Ottenheimer/Will-O-AFS505/blob/4f6e32785add3316e0c4f013e6d832c7e1244ae9/AFS505%20Final%20Exam.Rmd
 
+CSV File Permalink: https://github.com/Will-Ottenheimer/Will-O-AFS505/blob/4f6e32785add3316e0c4f013e6d832c7e1244ae9/ManagedCropData.csv
 
 
 ## Question 3 
