@@ -1,0 +1,111 @@
+---
+title: "AFS505 HWK1"
+author: "William Ottenheimer"
+date: "2022-10-03"
+output: html_document
+---
+
+### Question 1
+
+1) What is Tidy data? read an article and create a 1/2 - 1 page summary of your key takeaways and be prepared to discuss in the Teams channel and in class next Tuesday.
+
+  In addition to the assigned reading I have had the luxury of reading portions of "R for Data Science" by Garret Grolemund and Hadley Wickham which largely contributes to my understanding of tidy data. Tidy data is fundamentally centered around the idea of readable code. It is a data management standard/process that is meant to organize information in a manner cohesive to manipulation, modeling, and visualization. There are three characteristics that make data tidy. Firstly, within tabular data each variable that describes values corresponding to the same attribute should form a column. Secondly, Each observation should form its own row. Thirdly, each type of observational unit should form a table. Displaying data in this way makes it easier to visualize data. Another advantage of standardizing the way data is arranged is that it allows for familiarization of common analysis calculations. If a scientist stores data in the same way routinely when they conduct their routine operations the commands are less novel and mistakes will be less likely over time through practice. While tidy data is based on those three concepts data can still be technically tidy without maximized readability. For instance column names/headers don't have to be named for a data set to be technically "tidy" but they should for the sake of responsible data wrangling. When data is "messy" it’s sometimes because it’s a misattributed transposition of tidy data. In specific cases like these, the process of tidying data demands converting what is considered a wide dataset into a long dataset. Another typical messy issue is multiple attributes of data stored as single values. To tidy values like these the researcher often has to manipulate character data to divide it into separate values and assign each attribute to its own column. While it might seem counter intuitive that a data set becomes easier to read after adding more columns, such that the complexity of the table garners momentum, this is not really a problem for calculations and analysis since the data frame can always be filtered to only contain the information relevant to the task at hand. A rule of thumb to achieve tidy data consistently is that each type of observational unity should be stored in its own table. For example, if my data set has rows where each row represents a graduate it would be problematic if one person had two rows corresponding to their high school and college graduation independently. In cases where a single dataset relays repetitious values establishing somewhat indistinguishable observations, it is permissible to create a separate data set. The tidyr package is essential to the cause of data management because it facilitates filtering, transforming, aggregating, and sorting data. There is more to cogent readable and easy to manage data than just tidy data but tidy data is an ample starting point and requisite to long term data analysis success.
+
+### Question 2
+
+2) Take the combined dataset from Module 1's exam. Select all columns except the ones corresponding to the "planting date" and "used biomass". rename the irrigation column name to "irrigation_mm". Then arrange your data such that the Location and crop columns are the first and second columns followed by the others. Then filter all rows with yield values greater than its 1st quantile value. Use an appropriate function to add a column where the irrigation demand is converted from mm to inches. Find the mean annual irrigation demand for each combination of county and crop
+
+```{r}
+### read the combined data set
+
+Q2df <- read.csv("C:\\Users\\otten\\Desktop\\AFS Repository\\Will-O-AFS505\\ManagedCropData.csv")
+summary(Q2df)
+
+```
+
+```{r}
+### install the tidyverse
+install.packages("tidyverse")
+
+```
+```{r}
+### call library tidyverse
+library(tidyverse)
+```
+```{r}
+### remove the remove the appropriate columns
+
+Q2df <- subset(Q2df, select = -c(planting_date,used_biomass))
+summary(Q2df)
+```
+
+
+```{r}
+
+### rename irrigation to irrigation_mm
+
+Q2dfrenamed <- rename(Q2df, irrigation_mm = irrigation_demand)
+summary(Q2dfrenamed)
+
+```
+
+```{r}
+### Arrange data such that the location and crop columns are the 1st and 2nd
+
+Q2dfarranged <- Q2dfrenamed[,c(7,8,1,2,3,4,5,6,9,10)]
+summary(Q2dfarranged)
+```
+
+```{r}
+### Filter rows with yield values greater than its 1st Quantile
+
+summary(Q2dfarranged$yield)
+
+### Based on this summary the 1st Quantile is 9007 so we will filter everything greater than 9007
+
+Q2dffilt <- filter(Q2dfarranged, yield > 9007)
+summary(Q2dffilt)
+```
+
+```{r}
+### Create a column where irrigation is converted into inches
+Q2dfinch <- mutate(Q2dffilt, irrigation_inches = irrigation_mm*.0393701)
+
+summary(Q2dfinch)
+
+```
+
+```{r}
+### Find the mean annual irrigation demand for each combination of county and crop... There are 2 crops and 3 counties so that is 6 combinations
+### to calculate these values I will use the mean function and then condition the data being called as an argument
+
+Okanogancorn <- mean(Q2dfinch[Q2dfinch$countyname == 'Okanogan'& Q2dfinch$cropname == 'Corn_grain', "irrigation_inches" ])
+print(Okanogancorn)
+
+
+Okanoganwheat <- mean(Q2dfinch[Q2dfinch$countyname == 'Okanogan'& Q2dfinch$cropname == 'Winter_Wheat', "irrigation_inches" ])
+print(Okanoganwheat)
+	
+WallaWallacorn <-  mean(Q2dfinch[Q2dfinch$countyname == 'WallaWalla'& Q2dfinch$cropname == 'Corn_grain', "irrigation_inches" ])
+
+print(WallaWallacorn)
+	
+WallaWallawheat <-  mean(Q2dfinch[Q2dfinch$countyname == 'WallaWalla'& Q2dfinch$cropname == 'Winter_Wheat', "irrigation_inches" ])
+
+print(WallaWallawheat)
+	
+Yakimacorn  <- mean(Q2dfinch[Q2dfinch$countyname == 'Yakima'& Q2dfinch$cropname == 'Corn_grain', "irrigation_inches" ])
+
+print(Yakimacorn)
+
+Yakimawheat <- mean(Q2dfinch[Q2dfinch$countyname == 'Yakima'& Q2dfinch$cropname == 'Winter_Wheat', "irrigation_inches" ])
+
+print(Yakimawheat)
+```
+The irrigation means for the following county crop combinations in inches are as follows
+Okanogan corn: 15.02297
+Okanogan wheat: 15.59567
+WallaWalla corn: 14.51984
+WallaWalla wheat: 14.95276
+Yakima corn: 20.88453
+Yakima wheat: 21.87501
