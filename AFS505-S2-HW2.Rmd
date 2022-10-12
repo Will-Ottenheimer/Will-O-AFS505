@@ -1,0 +1,172 @@
+---
+title: "AFS505 S2 HW2"
+author: "William Ottenheimer"
+date: "2022-10-06"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+Use data from 
+https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-
+data.csv  
+
+### Question 1
+
+a) Generate a log2 plot showing cases per month for European countries with a population over 1million. Highlight six countries with the highest COVID19 case rates for the month of April
+
+```{r}
+### install appropriate packages
+require(ggplot2)
+require(tidyr)
+require(magrittr)
+require(dplyr)
+
+```
+```{r}
+#install.packages("gghighlight")
+```
+
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(gghighlight)
+```
+
+
+```{r}
+### read appropriate data
+Q1DF <- read.csv("https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-
+data.csv" )
+```
+
+```{r}
+### I attempted to filter but found an easier way this failed segment of code represents my previous efforts
+##Q1DF %>%
+###  filter(Q1DF, Q1DF$continent == 'Europe')
+###  filter(Q1DF, population >= 1000000)
+###  separate(Q1DF, date, into = c('Year','Month','Day'),sep = '-')
+###  summary(Q1DF)
+```
+
+
+```{r}
+### Filter observations to only include European nations
+Q1DFeur <- filter(Q1DF, continent == 'Europe')
+### Filter observations to only include populations over 1 million
+Q1DFpop <- filter(Q1DFeur, population >= 1000000)
+### duplicate date
+Q1DFpop$date2 <- Q1DFpop$date
+### use date to create month year day variables
+
+Q1DFdate <- separate(Q1DFpop,date, into = c('Year','Month','Day'), sep= '-')
+Q1DFdate$location <- as.factor(Q1DFdate$location)
+ 
+### remove na values
+Q1DFcomp <- filter(Q1DFdate, !is.na(total_cases_per_million))
+Q1DFcomp$monthlycases <- NA
+```
+
+We need to sum the cases per million over the years for each month
+
+
+```{r}
+### Export data frame to figure out the top 6 cutoff
+write.csv(plotdata,"C:\\Users\\otten\\Desktop\\AFS Repository\\Will-O-AFS505\\hwk2plotdata.csv")
+### for April it is 15618050.024 
+### for October it is 8886246.167
+```
+
+
+```{r}
+### conditional sum to get cases per month for every year
+
+plotdata <- aggregate(Q1DFcomp$total_cases_per_million, by=list(Q1DFcomp$Month, Q1DFcomp$location), FUN = sum)
+colnames(plotdata) <- c('Month','Location','Cases')
+
+
+### create a dummy variable if the country is in the 6 highest cases for april
+plotdata$AprilHigh <- ifelse(plotdata$Month == "04" & plotdata$Cases >= 15618050.024,1,0 )
+
+```
+
+
+now that we have the right data we can create our plot
+```{r}
+### generate plot
+p <- ggplot(data = plotdata, mapping = aes(x = Month, y = Cases, group = Location,colour = Location)) + geom_line() + ylab("Cases per million ") + ggtitle("European COVID19 Monthly Case Rate") + gghighlight(max(AprilHigh) == 1, use_direct_label = FALSE)
+p + scale_y_continuous(trans = 'log2')
+```
+
+b) Repeat but this time highlight the six countries with the highest covid 19 case rates for the month of Oct
+
+```{r}
+### Identify the top six cases for october
+plotdata$OctHigh <- ifelse(plotdata$Month == "10" & plotdata$Cases >= 8886246.167,1,0 )
+
+```
+
+```{r}
+p2 <- ggplot(data = plotdata, mapping = aes(x = Month, y = Cases, group = Location,colour = Location)) + geom_line() + ylab("Cases per million ") + ggtitle("European COVID19 Monthly Case Rate") + gghighlight(max(OctHigh) == 1,use_direct_label = FALSE)
+p2 + scale_y_continuous(trans = 'log2')
+```
+### Question 2
+
+a) Generate a plot showing deaths per month for European countries with a population over 1 million. Highlight the six countries with the highest COVID 19 death rates for the month of April
+
+```{r}
+
+### my data is the same as last time so I can use Q1DFcomp
+### create a variable that is death/cases and then sum that for each month
+Q1DFcomp$drate <-Q1DFcomp$total_cases_per_million/Q1DFcomp$total_deaths_per_million
+
+Q1DFcomp <- drop_na(Q1DFcomp, drate)
+```
+
+
+
+
+```{r}
+### conditional sum to get cases per month for every year
+
+plotdata2 <- aggregate(Q1DFcomp$drate, by=list(Q1DFcomp$Month, Q1DFcomp$location), FUN = sum)
+colnames(plotdata2) <- c('Month','Location','DeathRate')
+
+
+### create a dummy variable if the country is in the 6 highest cases for April
+plotdata2$AprilHigh <- ifelse(plotdata2$Month == "04" & plotdata2$DeathRate >= 11661,1,0 )
+```
+
+
+
+```{r}
+### Export data frame to figure out the top 6 cutoff
+write.csv(plotdata2,"C:\\Users\\otten\\Desktop\\AFS Repository\\Will-O-AFS505\\hwk2plotdata3.csv")
+### for April it is 11661.327712563 
+### for October it is 7797.20516837628
+```
+
+
+now that we have the right data we can create our plot
+```{r}
+### generate plot
+p3 <- ggplot(data = plotdata2, mapping = aes(x = Month, y = DeathRate, group = Location,colour = Location)) + geom_line() + ylab("Death Rate (Cases/Deaths) ") + ggtitle("European COVID19 Monthly Death Rate") + gghighlight(max(AprilHigh) == 1, use_direct_label = FALSE)
+p3 
+```
+
+b) Repeat but this time highlight the six countries with the highest COVID19 death rates for the month of Oct
+
+```{r}
+### create a dummy variable if the country is in the 6 highest cases for October
+plotdata2$OctHigh <- ifelse(plotdata2$Month == "10" & plotdata2$DeathRate >= 7797.20516837628,1,0 )
+```
+
+```{r}
+### generate plot
+p4 <- ggplot(data = plotdata2, mapping = aes(x = Month, y = DeathRate, group = Location,colour = Location)) + geom_line() + ylab("Death Rate (Cases/Deaths) ") + ggtitle("European COVID19 Monthly Death Rate") + gghighlight(max(OctHigh) == 1, use_direct_label = FALSE)
+p4 
+```
+All the appropriate graphs were created and this assignment is complete
+
+
