@@ -1,0 +1,279 @@
+---
+title: "AFS505 Hwk8"
+author: "William Ottenheimer"
+date: "2022-10-18"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+###Question 1
+Read in and examine the files
+
+```{r}
+getwd()
+```
+```{r}
+setwd("C:/Users/otten/Desktop/AFS Repository/Will-O-AFS505")
+```
+
+```{r}
+#install.packages("tidyverse")
+```
+```{r}
+library(tidyverse)
+```
+a) Join the two data tables to create a single table with covid and demographic statistics for US counties
+
+
+
+```{r}
+### execute read.csv function on the relevant files
+### store names as demo and covid
+Q1demodf <- read.csv("C:\\Users\\otten\\Desktop\\AFS Repository\\Will-O-AFS505\\woUS-cnty-demo.csv")
+
+Q1covdf <- read.csv("C:\\Users\\otten\\Desktop\\AFS Repository\\Will-O-AFS505\\woUS-cnty-COVID.csv")
+Q1demodf$County <- Q1demodf$ï..County.name
+```
+
+```{r}
+### apparently multiple states have counties with the same name so we will have to merge by countystate name combo
+Q1covdf$countstate <- paste(Q1covdf$County,Q1covdf$ï..State, sep= "")
+
+Q1demodf$countstate <- paste(Q1demodf$County,Q1demodf$ST.Name, sep = "")
+
+```
+
+
+
+```{r}
+### join data sets
+Q1joindf <-  full_join(Q1covdf,Q1demodf, by=c('countstate'))
+### check to see if countys are the same across columns
+### these values should match in every row
+Q1joindf$countycov <- Q1joindf$County.x
+Q1joindf$countydem <- Q1joindf$County.y
+
+### display the single table I have created
+head(Q1joindf)
+summary(Q1joindf)
+```
+b) Create new columns with cases/ population, deaths/population, and deaths/senior population
+
+```{r}
+### Create new columns 
+### column cases over population named cop
+Q1joindf$cop <- (Q1joindf$Cases/Q1joindf$TotalPop)
+### column deaths over population named dop
+Q1joindf$dop <- (Q1joindf$Deaths/Q1joindf$TotalPop)
+### column deaths over senior pop named dosp
+Q1joindf$dosp <- (Q1joindf$Deaths/Q1joindf$Pop.Over65)
+### Display columns successfully created
+summary(Q1joindf$cop)
+summary(Q1joindf$dop)
+summary(Q1joindf$dosp)
+```
+c) arrange counties in decreasing order by cases/population, deaths/population, deaths/senior population
+
+```{r}
+### i arrange by cases/population
+arrange(Q1joindf, desc(cop), by_group = County.x)
+```
+
+```{r}
+### ii arrange by deaths/population
+arrange(Q1joindf, desc(dop), by_group = County.x)
+```
+
+```{r}
+### iii arrange by deaths/ senior pop some of these values are infinite because there are no seniors in some counties (662 counties)
+arrange(Q1joindf, desc(dosp), by_group = County.x)
+```
+I believe I have constructed the arrangements properly. The highest county values for i ii iii respectively are: Trousdale, Tennessee; Grove, Kansas; Adair Kentucky (Emporia, Virginia for a non infinite value)
+If you were to analyze the "severity" of Covid by region you would have different results based on your metric of choice.
+
+
+d) Repeat steps b and c but for a state level analysis
+
+```{r}
+### To conduct state level analysis we need to get state total cases deaths and demographics
+casespstate <- aggregate(Q1joindf$Cases, by=list(Q1joindf$ST.Name),FUN = sum)
+colnames(casespstate) <- c("State","Cases")
+deathspstate <- aggregate(Q1joindf$Deaths, by=list(Q1joindf$ST.Name),FUN = sum)
+colnames(deathspstate) <- c("State","Deaths")
+popstate  <- aggregate(Q1joindf$TotalPop, by=list(Q1joindf$ST.Name),FUN = sum)
+colnames(popstate) <- c("State","TotalPop")
+oldpop <- aggregate(Q1joindf$Pop.Over65, by=list(Q1joindf$ST.Name),FUN = sum)
+colnames(oldpop) <- c("State","Over65")
+```
+
+```{r}
+###merge our data
+Q1statejoin <- full_join(casespstate,deathspstate, by=c('State'))
+Q1statejoin <- full_join(Q1statejoin, popstate, by=c('State'))
+Q1statejoin <- full_join(Q1statejoin, oldpop, by=c('State'))
+
+### create the columns for the rates we wish to analyze
+Q1statejoin$cop <- Q1statejoin$Cases/Q1statejoin$TotalPop
+Q1statejoin$dop <- Q1statejoin$Deaths/Q1statejoin$TotalPop
+Q1statejoin$dosp <- Q1statejoin$Deaths/Q1statejoin$Over65
+
+```
+
+```{r}
+arrange(Q1statejoin, desc(cop))
+```
+
+```{r}
+arrange(Q1statejoin, desc(dop))
+```
+
+```{r}
+arrange(Q1statejoin, desc(dosp))
+```
+I believe I have constructed the arrangements properly. The highest state values for i ii iii respectively are: North Dakota, New Jersey, and New Jersey
+If you were to analyze the "severity" of Covid by region you would have different results based on your metric of choice, New Jersey was affected very badly and I extend my heart to the people of "The Garden State"
+
+
+### Question 2
+Read in and examine worldbank data
+
+```{r}
+### Read the data
+wbhdf <- read.csv("C:\\Users\\otten\\Desktop\\AFS Repository\\Will-O-AFS505\\worldbankhealth.csv")
+
+
+```
+
+```{r}
+wbhvdc <- read.csv("C:\\Users\\otten\\Desktop\\AFS Repository\\Will-O-AFS505\\WorldBankHealth-VarDescClean.csv")
+
+wbccc <- read.csv("C:\\Users\\otten\\Desktop\\AFS Repository\\Will-O-AFS505\\WorldBankCountryClassClean.csv")
+```
+
+
+a) remove two long form descriptive data columns in the world bank data were code is sufficient
+
+```{r}
+q2awbhdf <- subset(wbhdf, select = -c(country_name,indicator_name))
+```
+
+b) Reshape the data into a tidy format... examine the result and comment
+
+To make our data tidy each variable must have its own column, each observation must have its own row, each value must have its own cell
+
+```{r}
+### we have the same observation across multiple rows so we must pivot wider
+q2bdf <- pivot_wider(q2awbhdf, names_from = "indicator_code",values_from = value)
+### examine the result 
+
+head(q2bdf)
+
+```
+We have tidy data now, each observation represents a country's various statistics during a given year. We have information on so many aspects of these nations like their birth rates, enrollments, and population segments. There are way too many variables so it makes sense that the prompt wants to subset the data into fewer columns.
+
+c) Select the subset of 11 columns with the fewest NA values. You may find the following useful. you can convert the result into a dataframe and arrange() to find the columns with the fewest NA values
+
+```{r}
+### Count the NA instances per each column
+nadf <- apply(is.na(q2bdf), MARGIN = 2, FUN =sum)
+
+```
+I'm taking this to excel to find the columns with the most NA's more quickly
+
+```{r}
+write.csv(nadf,"nacount.csv")
+```
+
+The 11 variables (columns since our data is tidy) with the fewest NA values are:
+
+country_code
+year
+SP.POP.TOTL
+SP.RUR.TOTL.ZS
+SP.URB.TOTL.IN.ZS
+SP.RUR.TOTL
+SP.URB.TOTL
+SP.POP.GROW
+SP.URB.GROW
+SP.RUR.TOTL.ZG
+SP.DYN.CBRT.IN
+
+```{r}
+### create a subset using those 11 columns
+Q2csubset <- subset(q2bdf, select = c(country_code,year,SP.POP.TOTL,SP.RUR.TOTL.ZS,SP.URB.TOTL.IN.ZS,SP.RUR.TOTL,SP.URB.TOTL,SP.POP.GROW,SP.URB.GROW,SP.RUR.TOTL.ZG,SP.DYN.CBRT.IN))
+### Display subset
+head(Q2csubset)
+```
+
+
+d) Select the subset of 9 columns with the fewest NA values.
+
+Following the above analysis the 9 columns with the fewest NA values are:
+country_code
+year
+SP.POP.TOTL
+SP.RUR.TOTL.ZS
+SP.URB.TOTL.IN.ZS
+SP.RUR.TOTL
+SP.URB.TOTL
+SP.POP.GROW
+SP.URB.GROW
+
+
+
+```{r}
+### Begin subset
+Q2dsubset <- subset(Q2csubset, select = -c(SP.RUR.TOTL.ZG,SP.DYN.CBRT.IN))
+head(Q2dsubset)
+```
+
+
+e) create a new dataframe by merging the result from d with world bank county class data
+
+```{r}
+### merge the dataframes
+### we don't need any country data from the class set for countries not in part d's data so we will left join
+### create a column named appropriately for merge
+wbccc$country_code <- wbccc$country.code
+Q2edf <- left_join(Q2dsubset,wbccc, by= "country_code")
+head(Q2edf)
+```
+Do not keep any observations with country codes not found in the country
+
+```{r}
+### If there are country codes not in class table then income.group will have an na value we drop rows accordingly
+Q2ecomp <- drop_na(data = Q2edf, income.group)
+```
+Put all country classification columns on the left side of the result.
+
+The names of these columns are:
+country.name	country.code	region	income.group	lend.cat
+
+
+```{r}
+Q2eleft <- relocate(Q2ecomp, country.name, .before = country_code)
+Q2eleft <- relocate(Q2eleft, country.code, .before = country_code)
+Q2eleft <- relocate(Q2eleft, region, .before = country_code)
+Q2eleft <- relocate(Q2eleft, income.group, .before = country_code)
+Q2eleft <- relocate(Q2eleft, lend.cat, .before = country_code)
+
+```
+
+```{r}
+### display new dataframe
+head(Q2eleft)
+```
+
+Comment: I did as the question instructed. My data frame is 12368 observations with 14 variables. Some of these variables have redundant information, but that doesn't do any harm (it's better to have too much data than not enough). I do not know what most of the variables for the indicators are because I don't know what each of the codes means. The commands that were helpful for this data sets creation were relocate, drop_na, and left_join. This data is still tidy each observation represents a countries information for a specific year.
+
+f) is your new table complete with respect to country code and year? Are there some country year combinations that don't exist?
+
+```{r}
+### write csv and check if it's complete
+#write.csv(Q2eleft, "iscompletecheck.csv")
+```
+
+I revealed I have 217 Unique country values each with 57 years of data. This combination means I should have a data set with 12369 observations (217*57. My data set has 12368 observations so I believe my table is incomplete. This means there are some country year combinations that don't exist. My data is also incomplete in the sense there are some year combinations that don't exist through no fault of the data. For instance there is no data for the years > 2016
+
+
