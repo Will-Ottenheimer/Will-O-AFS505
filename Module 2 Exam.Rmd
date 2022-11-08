@@ -1,0 +1,245 @@
+---
+title: "AFS505 Module 2 exam"
+author: "William Ottenheimer"
+date: "2022-11-03"
+output: html_document
+---
+
+
+### Module 2 Exam
+ Completed by William Ottenheimer 11/3/2022
+ Use the data from the output file provided
+
+```{r}
+### Install relevant packages
+install.packages("tidyverse")
+install.packages("lubridate")
+```
+
+```{r}
+### Call packages so I can use their functions
+library(tidyverse)
+library(lubridate)
+```
+
+
+```{r}
+### import data 
+examdf <- read.csv("C:\\Users\\otten\\Downloads\\Module2ExamInputFile.csv")
+```
+
+
+#### Question 1
+ Add a "Year" column using the lubridate package discussed in class
+
+```{r}
+### use lubridate function year() to directly access date component
+examdf$Year <- year(examdf$YYYY.MM.DD.DOY.)
+head(examdf)
+```
+The "Year" column was successfully added.
+
+#### Question 2
+  Create a new dataset by removing all rows with annual irrigation demands > the 90th percentile based on a joint crop and country combination. 
+  
+```{r}
+### Compute the 90th percentile of irrigation demands based on joint crop county combination
+
+### create a function to return the 90th percentile
+fun90 <- function(x){
+  quantile(x,probs = c(.9))
+}
+### apply that function to data based on crop and county value and store results
+
+q2temp <- aggregate(examdf$irrigation_demand, by = list(examdf$county_name,examdf$crop), FUN = fun90)
+
+### create an identifying variables corresponding to each crop/county combination for each data object and merge the two objects. The result is a data frame with the 90th percentile correctly identified for each respective row 
+q2temp$combo <- paste(q2temp$Group.1,q2temp$Group.2)
+
+examdf$combo <- paste(examdf$county_name,examdf$crop)
+
+dfwith90 <- merge(examdf,q2temp, by = c("combo"))
+
+### Use filter() from the tidyverse to subset data frame... we don't want any rows with irrigation demand values larger than their respective 90th percentiles
+
+newdataset <- dfwith90 %>% filter(irrigation_demand < x )
+### rename the identifying variable
+names(newdataset)[names(newdataset) == 'X'] <- 'ID'
+summary(newdataset)
+
+```
+
+
+#### Question 3 
+  Based on the data set created in step 2, create two separate files for annual irrigation demand and yield data retaining the county name, crop name, and lat long information in both files. Save them as csv files with headers.
+  
+```{r}
+### create two files one for irrigation demand and the other for yield. I should retain the county name, crop name, and lat long info.
+### I am also retaining the ID so that my joins can have a reference in question 4 and year so that I can appropriately answer question 5
+
+### subset the data for each file written
+Irrigdemdf <- subset(newdataset,select = c("irrigation_demand","county_name","crop","lat_lon","ID","Year"))
+
+Yielddf <- subset(newdataset,select = c("yield","county_name","crop","lat_lon","ID","Year"))
+### write the files
+write.csv(Irrigdemdf,"C:\\Users\\otten\\Desktop\\AFS Repository\\Will-O-AFS505\\exam 2\\irrig.csv",col.names = TRUE)
+
+write.csv(Yielddf,"C:\\Users\\otten\\Desktop\\AFS Repository\\Will-O-AFS505\\exam 2\\yield.csv" ,col.names = TRUE)
+
+```
+  
+  
+#### Question 4
+  Read the two csv files created in step 3 and apply the full, left, and right join functions to merge them into one single file. Do the three joins result in the same number of rows? Why? Why not?
+ 
+```{r}
+### read the files
+Q4yield <- read.csv("C:\\Users\\otten\\Desktop\\AFS Repository\\Will-O-AFS505\\exam 2\\yield.csv") 
+Q4irrig <- read.csv("C:\\Users\\otten\\Desktop\\AFS Repository\\Will-O-AFS505\\exam 2\\irrig.csv")
+
+```
+ 
+```{r}
+### Do full join
+fulljdf <- full_join(Q4irrig,Q4yield, by = c("ID"))
+summary(fulljdf)
+```
+```{r}
+leftjdf <- left_join(Q4irrig,Q4yield,by = c("ID")  )
+summary(leftjdf)
+```
+```{r}
+rightjdf <- right_join(Q4irrig,Q4yield, by = c("ID"))
+summary(rightjdf)
+```
+ The joins result in the same number of rows because all the same observations were split into the two files that we wrote out and re imported in.  
+  
+#### Question 5
+  Is the "full join" data frame from step 4 complete for all years of data for all groups as in the original data set provided? How many rows are missing? Are these implicit or explicit missing data? Create a complete dataset where missing irrigation demand values are filled with average values across a county crop combination
+  
+```{r}
+### let's compare the 2 data sets (original and full join)
+summary(examdf)
+
+```
+```{r}
+summary(fulljdf)
+```
+
+The full join data frame is not complete for all years of data for all groups as in the original data set provided. This should be obvious because we removed the outliers in a previous step. The number of rows is not the same between the 2 data frames (474 vs 416) so the full join could never be complete. 58 rows are missing.The dataframe provided to us is missing certain year location crop combinations as well, when this is corrected we will have 480 observations.
+
+The missing values are implicit because they have an absence of presence.
+
+```{r}
+### to complete a data set where irrigation demand values are filled with average values across county crop combination I will use the tidyverse complete command. I want data for every year and crop,county combination... The problem is that multiple lat lon combinations exist for each crop county combination. What I really want is a row to represent each crop county lat/lon combination that exists for each year.
+###I need to clean up my full join it has redundant variables
+fulljdf <- subset(fulljdf,select = c("irrigation_demand","county_name.x","lat_lon.x","Year.x","crop.x","yield" ))
+
+fulljdf$combo <- paste(fulljdf$county_name.x,fulljdf$crop.x)
+
+fulljdf$latcombo <- paste(fulljdf$combo,fulljdf$lat_lon.x)
+
+### create more rows for every year combination, this will create several NA values making the implicit missing information explicit
+
+Q5compdf <- fulljdf %>% 
+    complete(Year.x,latcombo, explicit = FALSE)
+
+```
+I created the complete data set but now need to fill the missing values with average values across county crop combinations
+```{r}
+### find the average irrigation demand values for county crop combinations
+
+q5temp <- aggregate(examdf$irrigation_demand, by = list(examdf$county_name,examdf$crop), FUN = mean)
+
+q5temp$combo <- paste(q2temp$Group.1,q2temp$Group.2)
+```
+
+```{r}
+### separate the variables to be sensible
+
+Q5compdf <- Q5compdf %>%
+  separate(latcombo, c("County", "Crop","lat_lon"), " ")
+
+
+```
+```{r}
+### create a reference variable for the temporary df merge. This will track the county and crop combination
+Q5compdf$combo <- paste(Q5compdf$County,Q5compdf$Crop)
+```
+
+```{r}
+q5temp <- subset(q5temp,select = c("x","combo"))
+```
+
+```{r}
+### join our temporary df with the average irrigation demand values to the dataframe with all years.
+
+Q5filled <- left_join(Q5compdf,q5temp, by = "combo" )
+```
+
+
+
+```{r}
+### The data set has the appropriate average value for each location crop combination stored in a separate column from irrigation demand. If the irrigation demand is explicitly missing for any row we want the average to assume that value.
+rownum <- nrow(Q5filled)
+forvect <- c(seq(1:rownum))
+for (i in forvect) {if(is.na(Q5filled[i,5])){
+  Q5filled[i,5] <- Q5filled[i,11]
+}
+}
+```
+
+```{r}
+head(Q5filled)
+```
+ 
+ 
+ 
+#### Question 6
+  Create a data frame of only the missing rows identified in step 5. Make sure the data frame has all the location and crop identifiers and two columns for irrigation demands - one column with the original data provided and another with the filled-in data from step 5. Create a plot (based on plot options we have already covered in class) to compare the original and filled-in values of irrigation demands? What insights did you find from the comparison plot?
+  
+```{r}
+### data set of only the missing rows
+Q6df <- Q5compdf %>% filter(is.na(irrigation_demand))
+
+### get the average values into the dataframe since those are the filled in data points
+Q6df <- left_join(Q6df,q5temp, by = "combo" )
+
+names(Q6df)[names(Q6df) == 'x'] <- 'FilledIrrig'
+Q6df$ycomb <- paste(Q6df$Year.x,Q6df$County,Q6df$Crop,Q6df$lat_lon)
+
+```
+
+
+take original df and make a year, country, crop, lat combo variable
+```{r}
+### add a variable to the original data frame so we can extract the actual values from it
+examdf$ycomb <- paste(examdf$Year,examdf$county_name,examdf$crop,examdf$lat_lon)
+
+
+```
+
+```{r}
+### make the data frame for our graphic
+plotdf <- left_join(Q6df,examdf, by = "ycomb")
+
+```
+
+```{r}
+plotdf <- plotdf[,-c(5,6,7,8,9,10,12,13,14,15,17,18,19,20,21)]
+```
+
+```{r}
+install.packages("ggplot2")
+```
+```{r}
+library(ggplot2)
+```
+```{r}
+p1 <- ggplot(data = plotdf, mapping = aes(x = Year.x)) + geom_line(aes(y = FilledIrrig, color = "Average(filled)")) + geom_line(aes(y = irrigation_demand.y, color = "Original")) + ylab("Irrigation Demand") + xlab("Year") + ggtitle("Filled vs Original Irrigation Demand")
+p1 
+```
+The comparison tells us the original values were all outliers since they exceed the averages handily.This was an expected outcomes. An interesting feature of this graph is that there appear to be cycles of high and low demand spread over the decades.
+
+Test completed by Will Ottenheimer.
+  
