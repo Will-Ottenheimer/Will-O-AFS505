@@ -1,0 +1,208 @@
+---
+title: "AFS 505 mod3HW1"
+output:
+  pdf_document: default
+  html_document: default
+date: "2022-11-08"
+---
+Use UC Irvine Iris data and attach GGplot2
+
+```{r}
+### This code ensures that all the libraries used here are installed
+
+packages <- c("ggplot2")
+if ( length(missing_pkgs <- setdiff(packages, rownames(installed.packages()))) > 0) { 
+  message("Installing missing package(s): ", paste(missing_pkgs, collapse = ", "))
+  install.packages(missing_pkgs)
+}
+require(ggplot2)
+```
+
+```{r}
+### Import the Iris data
+irisdat <- read.table("C:\\Users\\otten\\Desktop\\AFS Repository\\Will-O-AFS505\\iris.data", sep = ",")
+```
+
+```{r}
+#install.packages("tidyverse")
+#library(tidyverse)
+```
+Use meta data to label the columns
+7. Attribute Information:
+   1. sepal length in cm
+   2. sepal width in cm
+   3. petal length in cm
+   4. petal width in cm
+   5. class: 
+      -- Iris Setosa
+      -- Iris Versicolour
+      -- Iris Virginica
+
+
+
+```{r}
+colnames(irisdat) <- c("seplength","sepwidth","petlength","petwidth","class")
+summary(irisdat)
+```
+
+
+### Question 1
+Create the following boxplots to visualize the Iris data. Use ggplot2 unless instructed otherwise
+a) sepal width with base r 
+  Use the base R boxplot() 
+
+```{r}
+Q1ap <- boxplot(irisdat$sepwidth,ylab = "Sepal Width in cm")
+Q1ap
+```
+
+
+b) sepal length with ggplot
+Orient for best visualization of data. Briefly comment on the plot
+
+```{r}
+Q1bp <- ggplot(irisdat, aes(x="", y=irisdat$seplength)) + geom_boxplot() + ylab("Sepal Length in cm") + ggtitle("Question 1 b boxplot")
+Q1bp
+Q1bp2 <- ggplot(irisdat, aes(x="", y=irisdat$seplength)) + geom_boxplot() + ylab("Sepal Length in cm") + ggtitle("Question 1 b boxplot") + coord_flip()
+Q1bp2
+```
+
+This boxplot is a univariate analysis on the sepal length of the iris data. We see the sepal length has a median just under 6 cm. Most of the values lie between 6.5 and 5.1. I have tried this plot with and without the coordinate flip to see which orientation is better and the "Best visualization" orientation is ambiguous 
+
+c) Iris pedal length vs class
+  label the plot and axes appropriately, include a notch and color the boxes.Briefly comment on and interpret the plot. Orient for best visualization.
+
+```{r}
+Q1cp <- ggplot(irisdat, aes(x=irisdat$class, y=irisdat$petlength)) + geom_boxplot(fill = '#bcf099', color = '#c39bcc', notch = T) + ylab("Petal Length in cm") + xlab("Class") + ggtitle("Question 1 C boxplot")
+Q1cp
+```
+This plot is a multivariate analysis considering petal length and class. There are three classes. Virginica has the largest median and average petal length, setosa has the smallest median and average petal length.I chose a green fill and a purple coloring for the boxplots because I enjoy those colors.I believe the vertical orientation makes the most sense.
+
+
+  
+d) Iris petal width vs class
+  Examine this data with strip, jitter and violin plots. Label and color plots appropriately. Briefly comment on and interpret results
+
+```{r}
+Q1dp1 <- ggplot(irisdat, aes(x=irisdat$class, y=irisdat$petwidth)) + geom_point(color = '#e36b95') +  ylab("Petal Width in cm") + xlab("Class") + ggtitle("Question 1 D Strip Plot") + coord_flip()
+Q1dp1
+```
+
+```{r}
+Q1dp2 <- ggplot(irisdat, aes(x=irisdat$class, y=irisdat$petwidth)) + geom_jitter(color = '#045c25') + ylab("Petal Width in cm") + xlab("Class") + ggtitle("Question 1 D Jitter Plot") + coord_flip()
+Q1dp2
+```
+
+
+```{r}
+Q1dp3 <- ggplot(irisdat, aes(x=irisdat$class, y=irisdat$petwidth)) + geom_violin(fill = '#d9a491',color ='#84cdfa') + ylab("Petal Width in cm") + xlab("Class") + ggtitle("Question 1 D Violin Plot") + coord_flip()
+Q1dp3
+```
+This plot is a multivariate analysis considering petal width and class. There are three classes. Virginica has the largest median and average petal width, setosa has the smallest median and average petal width.I chose to flip the coordinates because our notes present these plots that way so the grader probably expects that in our format. I think the violin plot is the most informative of all these plots, it puts the information the jitter plot provides in a simpler form. Another detail is that the versicolor specimen have especially wide outliers and the virginica specimen have especially narrow outliers for their respective classes.
+
+### Question 2
+
+
+Create the following histograms to visualize iris data
+
+a) sepal width w/ base R frequency histogram
+  use base R hist() for this question
+
+```{r}
+Q2ap <- hist(irisdat$sepwidth, xlab = "Sepal Width in cm", main = "Histogram of Iris Sepal Width")
+Q2ap
+```
+This histogram tells us that most of the observations have sepal widths around 3. We can use the histogram to approximate the distribution of the data, this practice is crude but the sepal width seems to be somewhat normally distributed like a traditional bell curve
+  
+b) sepal length - frequency (with ggplot)
+  i frequency histogram  - label and color the plot appropriately. Designate the smallest bin width that doesn't create empty gaps in the histogram. Briefly comment on and interpret the histogram. 
+
+
+```{r}
+Q2bp <- ggplot(irisdat, mapping = aes(x = seplength)) +
+  geom_histogram(fill = '#9bbec7', color = '#391452', binwidth = .150496 ) +  ylab("Frequency") + xlab("Sepal Length in cm") + ggtitle("Question 2 B Sepal Length Histogram") + xlim(4,8)
+Q2bp
+```
+The histogram is colored and labeled appropriately. 
+The smallest bin width that would eliminate all gaps is decidedly .150496 
+The histogram tells us that all values are between 4 and 8 cm.Some lengths are more common than others, for instance there are several observations with lengths around 5 cm and most observations have lengths around the range of 5-7.
+ 
+  ii Frequency polygon - Using appropriate colors and line parameters, overlay a frequency polygon on top of frequency histogram created above and comment.
+```{r}
+q2bp2<- ggplot(irisdat, mapping = aes(x = seplength)) +
+  geom_histogram(fill = '#9bbec7', color = '#391452', binwidth = .150496 ) +  ylab("Frequency") + xlab("Sepal Length in cm") + ggtitle("Question 2 B Sepal Length Histogram/Polygon") + xlim(4,8) + geom_freqpoly(color = '#ffb0d7',lwd = 1.2)
+q2bp2
+```
+I have used appropriate colors and line parameters to overlay a frequency polygon on top of the previously created histogram. The Polygon does a good job of representing the peaks and troughs the histogram formed with it's bins for each range of length values and their number of occurrences.
+
+
+c) Petal length - density
+  i density histogram - label and color the plot appropriately. Designate the smallest bin width that doesn't create empty gaps in the histogram. Briefly comment on and interpret the histogram. 
+ 
+
+```{r}
+Q2cp <- ggplot(irisdat, mapping = aes(x =petlength, ..density..)) +
+  geom_histogram(fill = '#9bbec7', color = '#391452', binwidth = .6666666652 ) +  ylab("Density") + xlab("Petal Length in cm") + ggtitle("Question 2 C Petal Length Density Histogram") + xlim(.9,7.4)
+Q2cp
+  
+```
+The smallest binwidth that doesn't create gaps is decidedly about .666. This density histogram tells us over 40 percent of all observations are under 2. The sum of the areas of the boxes created in this density histogram is one. About half of the observations have petal lengths ranging loosely from around 4-6.
+
+ ii kernel density estimator - overlay a smoothed kernel density estimator (default smooth) over the density histogram and comment
+ 
+```{r}
+Q2cp2 <- ggplot(irisdat, mapping = aes(x =petlength, ..density..)) +
+  geom_histogram(fill = '#9bbec7', color = '#391452', binwidth = .6666666652 ) +  ylab("Density") + xlab("Petal Length in cm") + ggtitle("Question 2 C Petal Length Density Histogram/Kernel") + xlim(.9,7.4) + geom_density(color = 'black', size = 1.5) + geom_density(color = 'orange', size = 1)
+Q2cp2
+```
+The Kernel created tells us about a potential underlying probability density function behind our data. The bi-modal nature of this curve reinforces the sentiment made earlier about where different halves of the data lie.
+
+
+d) Petal width vs class
+in the following frequency plots, examine and comment on petal width distribution by the grouping variable class
+  i facetted frequency histogram
+  organize facets in a vertical orientation. label and color appropriately
+  
+```{r}
+Q2dp <- ggplot(irisdat, mapping = aes(x =petwidth,fill = class)) +
+  geom_histogram() +  ylab("Frequency") + xlab("Petal Width in cm") + ggtitle("Question 2 D Petal Width Facetted Histogram") + facet_wrap(~class, ncol = 1) 
+Q2dp
+```
+Petal width is much narrower for setosa on average than it is for versicolor and virginica. The facets are in vertical orientation and labeled/colored appropriately.
+
+  ii facetted frequency polygon
+  label, color and set line width appropriately
+
+```{r}
+Q2dp2 <- ggplot(irisdat, mapping = aes(x =petwidth,color = class)) +
+  geom_freqpoly(lwd = 1.4) +  ylab("Frequency") + xlab("Petal Width in cm") + ggtitle("Question 2 D Petal Width Facetted Polygon") 
+Q2dp2
+```
+The labels color and line width are appropriate.The distribution of widths at the class level is consistent with our understanding from the facetted histogram. Setosa is the least wide and virginica is the widest on average.  
+  
+e) Sepal Width vs class
+In the following kernel density estimator plots examine and comment on sepal width density distribution by the grouping variable class
+  i Facetted density estimator - polygons
+label color and set line width appropriately
+
+```{r}
+Q2ep <- ggplot(irisdat, mapping = aes(x =sepwidth,color = class)) +
+  geom_density(lwd = 1.3) +  ylab("Density") + xlab("Sepal Width in cm") + ggtitle("Question 2 D Sepal Width Facetted Density Polygon") 
+Q2ep
+```
+The labels colors and line widths are appropriate. The distribution is relatively even for the petal widths across the classes. Versicolor and Virginica are very similar in terms of their expected widths and setosa might have a slightly higher average/median width. I am slightly bothered that the density values surpass 1 but I have kept my code consistent with the example provided to us on page 30 of our notes so I don't think the representation is problematic.
+
+  ii Facetted density estimator - histograms
+  Orient facets vertically. Label and color appropriately
+
+```{r}
+Q2ep2 <- ggplot(irisdat, mapping = aes(x =sepwidth,fill = class)) +
+  geom_density() +  ylab("Density") + xlab("Sepal Width in cm") + ggtitle("Question 2 D Sepal Width Facetted Density Histogram") + facet_wrap(~class, ncol = 1) 
+Q2ep2
+```
+
+
+The facets are vertical and the labels/ colors are appropriate. We see the same result about the relative similarity across sepal width distributions across classes as the above kernel density polygon
+
+This homework is now complete.
+-Will O
