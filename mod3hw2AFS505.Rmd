@@ -1,0 +1,244 @@
+---
+title: "AFS 505 mod3HW2"
+output:
+  pdf_document: default
+  html_document: default
+date: "2022-11-28"
+---
+Use UC Irvine Iris data and attach GGplot2
+
+```{r}
+### This code ensures that all the libraries used here are installed
+
+packages <- c("ggplot2")
+if ( length(missing_pkgs <- setdiff(packages, rownames(installed.packages()))) > 0) { 
+  message("Installing missing package(s): ", paste(missing_pkgs, collapse = ", "))
+  install.packages(missing_pkgs)
+}
+require(ggplot2)
+```
+
+```{r}
+### Import the Iris data
+irisdat <- read.table("C:\\Users\\otten\\Desktop\\AFS Repository\\Will-O-AFS505\\iris.data", sep = ",")
+```
+
+```{r}
+#install.packages("tidyverse")
+#library(tidyverse)
+```
+Use meta data to label the columns
+7. Attribute Information:
+   1. sepal length in cm
+   2. sepal width in cm
+   3. petal length in cm
+   4. petal width in cm
+   5. class: 
+      -- Iris Setosa
+      -- Iris Versicolour
+      -- Iris Virginica
+
+
+
+```{r}
+colnames(irisdat) <- c("seplength","sepwidth","petlength","petwidth","class")
+summary(irisdat)
+```
+
+### Question 1
+
+Read Iris data and create the following scatterplots
+
+a) Sepal width vs sepal length w/ base R
+
+```{r}
+### base r
+### width is x axis length is y axis
+with(irisdat, plot(sepwidth,seplength))
+```
+The length vs width of the sepals has been plotted with base R. There doesn't appear to be an obvious positive or negative relationship. Sepal width is on the x axis and sepal length is on the y axis.
+
+b) pedal width vs sepal width Use ggplot2
+
+```{r}
+q1p <- ggplot(irisdat, aes(x = petwidth, y = sepwidth))+ geom_point(color = 'blue', shape = 2) + ggtitle(label = "Petal Width vs Sepal Width") + xlab( "Petal Width")+ ylab("Sepal Width")
+q1p
+```
+There is a problem with this data there must have been some rounding done with the width because there are several points that are clustered along certain sizes unnaturally. Colors and shapes have been specified. 
+c) Pedal width vs sepal width by class
+```{r}
+q1p2 <- ggplot(irisdat, aes(x = petwidth, y = sepwidth, color = class))+ geom_point(shape = 5) + ggtitle(label = "Petal Width vs Sepal Width by Class") + xlab( "Petal Width")+ ylab("Sepal Width")
+q1p2
+```
+This plot is an improvement from the previous one because it informs the viewer that the varying width relationships/values seem to be motivated by class.
+
+### Question 2
+Hex Plots
+
+Read data from winequality-red.csv
+
+```{r}
+winedat <- read.csv("C:\\Users\\otten\\Desktop\\AFS Repository\\Will-O-AFS505\\winequality-red.csv")
+summary(winedat)
+```
+a) Construct a Hexplot of wine density vs alcohol, overplotting with a smoothing loess function. Label appropriately. Use default binwidths. Comment briefly on the quality of the plot
+
+```{r}
+q2p1 <- ggplot(winedat, aes(x = density, y = alcohol))+ geom_hex() + geom_smooth(method = 'loess', color = 'red', formula = y~x) + ggtitle(label = "Wine Density x Alcohol Hexplot") + xlab( "Density")+ ylab("Alcohol")
+q2p1
+```
+The plot is rather low quality because the information is cluttered. The plot is ineffective with how the data is a large blob and the relationship the line delivers cannot be clearly seen with the hexes.
+
+b) redo the hex plot but adjust the binwidths appropriately. Comment on the distributions of these two variables and their relationship.
+
+```{r}
+q2p2 <- ggplot(winedat, aes(x = density, y = alcohol))+ geom_hex(binwidth = c(.00015,.2)) + geom_smooth(method = 'loess', color = 'red', formula = y~x) + ggtitle(label = "Adjusted Wine Density x Alcohol Hexplot") + xlab( "Density")+ ylab("Alcohol")
+q2p2
+```
+There seems to be a negative relationship with density and alcohol for the density levels between .99 and .998 after that the relationship fades. Most wines have alcohol levels just above 12, and there is very low variance in density.
+
+### Question 3
+Use iris dataset to construct plots
+a) numerical scatterplot base r
+  apple the base R pairs() function to the numeric variables in Iris. 
+
+```{r}
+
+pairs(irisdat[,c(1,2,3,4)])
+```
+
+
+b) numerical scatterplot with ggplot and ggally
+
+```{r}
+#install.packages("GGally")
+library(GGally)
+```
+
+
+```{r}
+ggpairs(irisdat, columns = c(1:4), title = 'Iris Data')
+```
+
+c) numerical scatterplot matrix w/ group color
+```{r}
+ggpairs(irisdat, columns = c(1:4), title = 'Iris Data with group color',progress = F, ggplot2::aes(color=class))
+```
+
+d) Numerical scatterplot matrix w/ categorical variable
+
+```{r}
+ggpairs(irisdat, columns = c(1:5), title = 'Iris Data with categorical variable',progress = F, ggplot2::aes(color=class))
+```
+The results tell us that the class of the iris is probably the single most important variable for describing numerical variable relationships. Some numerical variables have negative relationships while other variables have positive correlations.
+
+### Question 4
+Mosaic and Association plots
+Use the car data to make the plots
+
+a) Read and process car data
+
+I don't know where the clean data is so i'm using homework 3's car data
+
+
+
+old data management:
+
+(a) Read in car data
+```{r}
+### Read car data
+Q4df <- read.csv("C:\\Users\\otten\\Downloads\\car.csv", stringsAsFactors = TRUE)
+### Display data frame
+summary(Q4df)
+head(Q4df)
+dim(Q4df)
+```
+(b) remove all observations (rows) with missing values. show dim and summary of data with appropriate observations removed
+```{r}
+### Remove na values from data frame
+Q4bdf <- Q4df
+Q4bdf <- na.omit(Q4bdf)
+### Display subsetted data frame
+summary(Q4bdf)
+dim(Q4bdf)
+```
+(c) remove duplicate observations (rows)
+```{r}
+### Remove duplicate observations
+Q4cdf <- Q4bdf
+Q4cdf <- Q4cdf[!duplicated(Q4cdf),]
+### Display subsetted data frame
+summary(Q4cdf)
+dim(Q4cdf)
+```
+
+
+
+
+```{r}
+cardat <- Q4cdf
+
+summary(cardat)
+```
+```{r}
+factor(cardat$rating, levels = c("unacc","acc","good","vgood"))
+```
+
+```{r}
+str(cardat)
+```
+The rating factor has been reordered. 
+
+b) using a colored mosaic plot compare rating vs trunk size
+
+```{r}
+#install.packages("vcd")
+library(vcd)
+```
+
+
+```{r}
+q4b.tb <- structable(rating ~ trunk, data = cardat)
+q4b.tb
+```
+```{r}
+mosaic(q4b.tb)
+```
+Labels do not need adjusting to be readable. The mosaic reveals that cars with big trunks have more very good ratings than any other trunk size. Cars with small trunks have the fewest very good ratings. The good ratings are about the same size for each group.
+
+b) mosaic price.buy, price.maint vs rating
+ 1 default splits: using a mosaic plot, compare rating vs trunk size. place rating on top, price.buy on left, and price. maint on the right axis. Adjust labels for readability interpret results
+ 2 repeat 1 but split both rating and price.maint vertically and compare
+ 
+```{r}
+q4b2.tb <- structable(rating ~ price.buy + price.maint, data = cardat)
+q4b2.tb
+```
+```{r}
+
+mosaic(q4b2.tb,shade = T, labeling_args = list(abbreviate_labs = c(9,1,9)))
+```
+One interesting result to interpret here is that low and medium buy priced cars have the most very good rating. The majority of ratings are unacc (unaccounted?)
+
+```{r}
+mosaic(q4b2.tb,shade = T, split_vertical = c(F,T,T) , labeling_args = list(abbreviate_labs = c(9,6,1)))
+```
+ The vertical split makes the mosaic much more difficult to understand, I prefer the default split. The results should be the same though.
+ 
+c) Association price.by vs rating
+Construct a colored association plot showing relationships between purchase price and rating with rating on the top axis.
+
+```{r}
+q4c.tb <- structable(rating ~ price.buy, data = cardat)
+q4c.tb
+```
+
+```{r}
+assoc(q4c.tb, gp = shading_hcl)
+```
+
+This tells us that high purchase prices are negatively correlated with good/very good ratings and low purchase prices are positively correlated with good and very good ratings.
+
+Homework is complete
+-Will O
+
